@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "khothemegiatot.Winform", "khothemegiatot.Winform\khothemegiatot.Winform.csproj", "{B6255F59-BBB4-41EE-8322-F4EA8AE41817}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "khothemegiatot.License", "khothemegiatot.License\khothemegiatot.License.csproj", "{D8A19BC7-ABC2-4A31-B4F8-27F7AEB74332}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B6255F59-BBB4-41EE-8322-F4EA8AE41817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6255F59-BBB4-41EE-8322-F4EA8AE41817}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6255F59-BBB4-41EE-8322-F4EA8AE41817}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6255F59-BBB4-41EE-8322-F4EA8AE41817}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8A19BC7-ABC2-4A31-B4F8-27F7AEB74332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8A19BC7-ABC2-4A31-B4F8-27F7AEB74332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8A19BC7-ABC2-4A31-B4F8-27F7AEB74332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8A19BC7-ABC2-4A31-B4F8-27F7AEB74332}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
