@@ -87,16 +87,16 @@ public class LicenseChecker
 
     public static async Task<bool> ValidateLicense()
     {
-        string licenseJson = await LoadLicenseAsync("license.dat");
-        if (string.IsNullOrEmpty(licenseJson))
-            return false;
-
         try
         {
+            string licenseJson = await LoadLicenseAsync("license.dat");
+            if (string.IsNullOrEmpty(licenseJson))
+                return false;
+
             JObject licenseJObject = JsonConvert.DeserializeObject<JObject>(licenseJson);
             return (bool)licenseJObject["isActive"];
         }
-        catch (JsonException)
+        catch (Exception)
         {
             return false;
         }
