@@ -7,7 +7,7 @@ public class DaoBase<T> : IDisposable
 
     public DaoBase(SqlExecHelper sqlExecHelper)
     {
-        _sqlExecHelper = sqlExecHelper;
+        this.sqlExecHelper = sqlExecHelper;
     }
 
 

@@ -12,12 +12,14 @@
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
     <PackageReference Include="Redis.OM" Version="0.7.6" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\Japanese.Core\Japanese.Core.csproj" />
+    <ProjectReference Include="..\khothemegiatot.ADO.NET\khothemegiatot.ADO.NET.csproj" />
+    <ProjectReference Include="..\khothemegiatot.NoSQL\khothemegiatot.NoSQL.csproj" />
   </ItemGroup>
 
 </Project>

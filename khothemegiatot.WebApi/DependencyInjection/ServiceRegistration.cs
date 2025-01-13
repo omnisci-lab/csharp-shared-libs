@@ -9,7 +9,7 @@ using khothemegiatot.WebApi.Queue;
 using khothemegiatot.WebApi.BackgroundServices;
 using khothemegiatot.WebApi.CQRS.ExtendedProcessing;
 using khothemegiatot.WebApi.CQRS.Behaviours;
-using Japanese.Core.RepositoryBase.MongoDB;
+using khothemegiatot.WebApi.Repositories.MongoDB;
 
 namespace khothemegiatot.WebApi.DependencyInjection;
 

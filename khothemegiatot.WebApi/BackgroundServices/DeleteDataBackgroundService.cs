@@ -1,6 +1,5 @@
-﻿using Japanese.Core.RepositoryBase.MongoDB;
+﻿using khothemegiatot.WebApi.Repositories.MongoDB;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace khothemegiatot.WebApi.BackgroundServices;
 

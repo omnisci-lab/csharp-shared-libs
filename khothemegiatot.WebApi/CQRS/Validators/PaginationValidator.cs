@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using Japanese.Core.CommonModels;
+using khothemegiatot.WebApi.Models;
 
 namespace khothemegiatot.WebApi.CQRS.Validators;
 
