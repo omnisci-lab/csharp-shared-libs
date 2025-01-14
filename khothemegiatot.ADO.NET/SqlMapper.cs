@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using khothemegiatot.ADO.NET.Attributes;
+using Microsoft.Data.SqlClient;
 using System.Reflection;
 
 namespace khothemegiatot.ADO.NET;
@@ -13,7 +14,7 @@ public class SqlMapper
      */
     public static T MapRow<T>(SqlDataReader reader) where T : ISqlTable, new()
     {
-        T instance = ReflectionCache.GetObject<T>();
+        T instance = new T();
         PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
 
         foreach (PropertyInfo tProperty in tProperties)

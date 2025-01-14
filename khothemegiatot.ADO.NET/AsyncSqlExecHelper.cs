@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using khothemegiatot.ADO.NET.QueryBuilder;
 
 namespace khothemegiatot.ADO.NET;
 
@@ -18,7 +19,7 @@ public partial class SqlExecHelper
             _connection.Close();
     }
 
-    public async IAsyncEnumerable<T> ExecuteReaderAsync<T>(string sql, Dictionary<string, object> parameters, Func<DbDataReader, T> mapper)
+    public async IAsyncEnumerable<T> ExecuteReaderAsync<T>(string sql, Dictionary<string, object> parameters, Func<SqlDataReader, T> mapper)
     {
         await ConnectAsync();
 
@@ -71,7 +72,7 @@ public partial class SqlExecHelper
         return await cmd.ExecuteNonQueryAsync();
     }
 
-    public async IAsyncEnumerable<T> ExecuteReaderAsync<T>(SqlQueryBuilder builder, Func<SqlDataReader, T> mapper)
+    public async IAsyncEnumerable<T> ExecuteReaderAsync<T>(SqlQueryBuilderBase builder, Func<SqlDataReader, T> mapper)
     {
         await ConnectAsync();
 
@@ -89,7 +90,7 @@ public partial class SqlExecHelper
         }
     }
 
-    public async Task<object> ExecuteScalarQueryAsync<Tscalar>(SqlQueryBuilder builder)
+    public async Task<object> ExecuteScalarQueryAsync<Tscalar>(SqlQueryBuilderBase builder)
     {
         await ConnectAsync();
 
@@ -102,7 +103,7 @@ public partial class SqlExecHelper
         return await cmd.ExecuteScalarAsync();
     }
 
-    public async Task<int> ExecuteNonQueryAsync(SqlQueryBuilder builder)
+    public async Task<int> ExecuteNonQueryAsync(SqlQueryBuilderBase builder)
     {
         await ConnectAsync();
 

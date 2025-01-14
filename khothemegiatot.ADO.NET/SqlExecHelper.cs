@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using khothemegiatot.ADO.NET.QueryBuilder;
 using Microsoft.Data.SqlClient;
 
 namespace khothemegiatot.ADO.NET;
@@ -93,7 +94,7 @@ public partial class SqlExecHelper : IDisposable
         return dataTable;
     }
 
-    public IEnumerable<T> ExecuteReader<T>(SqlQueryBuilder builder, Func<SqlDataReader, T> mapper)
+    public IEnumerable<T> ExecuteReader<T>(SqlQueryBuilderBase builder, Func<SqlDataReader, T> mapper)
     {
         Connect();
 
@@ -110,7 +111,7 @@ public partial class SqlExecHelper : IDisposable
         }
     }
 
-    public object ExecuteScalarQuery<Tscalar>(SqlQueryBuilder builder)
+    public object ExecuteScalarQuery<Tscalar>(SqlQueryBuilderBase builder)
     {
         Connect();
 
@@ -123,7 +124,7 @@ public partial class SqlExecHelper : IDisposable
         return (Tscalar)cmd.ExecuteScalar();
     }
 
-    public int ExecuteNonQuery(SqlQueryBuilder builder)
+    public int ExecuteNonQuery(SqlQueryBuilderBase builder)
     {
         Connect();
 
@@ -136,7 +137,7 @@ public partial class SqlExecHelper : IDisposable
         return cmd.ExecuteNonQuery();
     }
 
-    public DataTable GetDataTable(SqlQueryBuilder builder)
+    public DataTable GetDataTable(SqlQueryBuilderBase builder)
     {
         Connect();
 

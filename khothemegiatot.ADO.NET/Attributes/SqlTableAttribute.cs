@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.ADO.NET;
+﻿namespace khothemegiatot.ADO.NET.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class SqlTableAttribute : Attribute
