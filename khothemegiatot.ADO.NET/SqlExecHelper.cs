@@ -92,7 +92,66 @@ public partial class SqlExecHelper : IDisposable
 
         return dataTable;
     }
-    
+
+    public IEnumerable<T> ExecuteReader<T>(SqlQueryBuilder builder, Func<SqlDataReader, T> mapper)
+    {
+        Connect();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        using SqlDataReader reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            yield return mapper(reader);
+        }
+    }
+
+    public object ExecuteScalarQuery<Tscalar>(SqlQueryBuilder builder)
+    {
+        Connect();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        return (Tscalar)cmd.ExecuteScalar();
+    }
+
+    public int ExecuteNonQuery(SqlQueryBuilder builder)
+    {
+        Connect();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    public DataTable GetDataTable(SqlQueryBuilder builder)
+    {
+        Connect();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        using SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
+        DataTable dataTable = new DataTable();
+        dataAdapter.Fill(dataTable);
+
+        return dataTable;
+    }
 
     protected virtual void Dispose(bool disposing)
     {

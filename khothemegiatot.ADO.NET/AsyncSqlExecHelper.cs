@@ -70,4 +70,48 @@ public partial class SqlExecHelper
 
         return await cmd.ExecuteNonQueryAsync();
     }
+
+    public async IAsyncEnumerable<T> ExecuteReaderAsync<T>(SqlQueryBuilder builder, Func<SqlDataReader, T> mapper)
+    {
+        await ConnectAsync();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            yield return mapper(reader);
+        }
+    }
+
+    public async Task<object> ExecuteScalarQueryAsync<Tscalar>(SqlQueryBuilder builder)
+    {
+        await ConnectAsync();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        return await cmd.ExecuteScalarAsync();
+    }
+
+    public async Task<int> ExecuteNonQueryAsync(SqlQueryBuilder builder)
+    {
+        await ConnectAsync();
+
+        using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
+        cmd.CommandType = CommandType.Text;
+
+        foreach (var (key, value) in builder.GetParameters())
+            cmd.Parameters.AddWithValue(key, value);
+
+        return await cmd.ExecuteNonQueryAsync();
+    }
 }
