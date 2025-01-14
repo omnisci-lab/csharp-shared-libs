@@ -13,15 +13,13 @@ public class SqlMapper
      */
     public static T MapRow<T>(SqlDataReader reader) where T : ISqlTable, new()
     {
-        PropertyInfo[] tProperties = typeof(T).GetProperties();
+        T instance = ReflectionCache.GetObject<T>();
+        PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
 
-        T instance = new T();
         foreach (PropertyInfo tProperty in tProperties)
         {
             SqlColumnAttribute attribute = tProperty.GetCustomAttribute<SqlColumnAttribute>();
             string columnName = attribute is null ? tProperty.Name : attribute.ColumnName;
-
-            tProperty.SetValue(instance, reader[attribute.ColumnName]);
 
             if (reader.HasColumn(attribute.ColumnName) && !reader.IsDBNull(reader.GetOrdinal(attribute.ColumnName)))
             {

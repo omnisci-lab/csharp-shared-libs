@@ -40,8 +40,8 @@ public class SqlQueryBuilder
     public static SqlQueryBuilder Select<T>(Func<T, object> selector = null) where T : ISqlTable, new()
     {
         SqlQueryBuilder builder = new SqlQueryBuilder();
-        T t = new T();
-        Type ttype = t.GetType();
+        T t = ReflectionCache.GetObject<T>();
+        Type ttype = typeof(T);
         SqlTableAttribute tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
         builder._tableName = (tableAttribute is null) ? ttype.Name : tableAttribute.TableName;
