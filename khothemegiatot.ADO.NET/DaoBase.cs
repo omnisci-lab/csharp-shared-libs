@@ -15,12 +15,12 @@ public class DaoBase<T> : IDisposable where T : ISqlTable , new()
 
     public async Task<T> GetAsync(Expression<Func<T, bool>> expression = null)
     {
-        SimpleSqlQueryBuilder builder = null;
+        SqlQueryBuilder builder = null;
         if (typeof(T) == typeof(SqlTableWithTimestamp))
-            builder = SimpleSqlQueryBuilder.Select<T>().Where<SqlTableWithTimestamp>(x => x.DeletedAt == null)
+            builder = SqlQueryBuilder.Select<T>().Where<SqlTableWithTimestamp>(x => x.DeletedAt == null)
                 .Where(expression);
         else
-            builder = SimpleSqlQueryBuilder.Select<T>().Where(expression);
+            builder = SqlQueryBuilder.Select<T>().Where(expression);
 
         IAsyncEnumerable<T> asyncEnumerable = sqlExecHelper
             .ExecuteReaderAsync(builder, reader => SqlMapper.MapRow<T>(reader));
@@ -30,12 +30,12 @@ public class DaoBase<T> : IDisposable where T : ISqlTable , new()
 
     public IAsyncEnumerable<T> GetListAsync(Expression<Func<T, bool>> expression = null)
     {
-        SimpleSqlQueryBuilder builder = null;
+        SqlQueryBuilder builder = null;
         if (typeof(T) == typeof(SqlTableWithTimestamp))
-            builder = SimpleSqlQueryBuilder.Select<T>().Where<SqlTableWithTimestamp>(x => x.DeletedAt == null)
+            builder = SqlQueryBuilder.Select<T>().Where<SqlTableWithTimestamp>(x => x.DeletedAt == null)
                 .Where(expression);
         else
-            builder = SimpleSqlQueryBuilder.Select<T>().Where(expression);
+            builder = SqlQueryBuilder.Select<T>().Where(expression);
 
         return sqlExecHelper.ExecuteReaderAsync(builder, reader => SqlMapper.MapRow<T>(reader));
     }

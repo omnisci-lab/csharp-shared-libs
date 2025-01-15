@@ -1,4 +1,6 @@
-﻿namespace khothemegiatot.ADO.NET;
+﻿using khothemegiatot.ADO.NET.Attributes;
+
+namespace khothemegiatot.ADO.NET;
 
 public interface ISqlTable
 {

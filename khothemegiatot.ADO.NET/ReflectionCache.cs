@@ -5,7 +5,8 @@ namespace khothemegiatot.ADO.NET;
 
 public static class ReflectionCache
 {
-    private static readonly ConcurrentDictionary<Type, object> objectCache;
+    private static readonly ConcurrentDictionary<Type, object> objectCache
+        = new ConcurrentDictionary<Type, object>();
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> propertyCache 
         = new ConcurrentDictionary<Type, PropertyInfo[]>();

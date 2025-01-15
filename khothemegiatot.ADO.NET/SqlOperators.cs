@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace khothemegiatot.ADO.NET;
 
-namespace khothemegiatot.ADO.NET;
-
-internal class SqlOperators
+public class SqlOperators
 {
 }

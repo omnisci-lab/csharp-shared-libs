@@ -3,6 +3,8 @@
 
 public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
 {
+    protected SimpleSqlQueryBuilder() : base() { }
+
     public static SimpleSqlQueryBuilder Select(string tableName, params string[] columns)
     {
         SimpleSqlQueryBuilder builder = new SimpleSqlQueryBuilder();

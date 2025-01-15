@@ -10,7 +10,7 @@ public class SqlQueryBuilderBase
     protected readonly List<string> conditions;
     protected readonly Dictionary<string, object> parameters;
 
-    internal SqlQueryBuilderBase()
+    protected SqlQueryBuilderBase()
     {
         query = new StringBuilder();
         columns = new List<string>();
