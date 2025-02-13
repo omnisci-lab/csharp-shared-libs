@@ -26,7 +26,7 @@ public partial class SqlExecHelper
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if (parameters != null)
+        if (parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
@@ -40,30 +40,32 @@ public partial class SqlExecHelper
         }
     }
 
-    public async Task<object> ExecuteScalarQueryAsync<Tscalar>(string sql, Dictionary<string, object> parameters)
+    public async Task<Tscalar?> ExecuteScalarQueryAsync<Tscalar>(string sql, Dictionary<string, object>? parameters = null)
     {
         await ConnectAsync();
 
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if (parameters != null)
+        if (parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
             cmd.Parameters.AddWithValue(key, value);
 
-        return await cmd.ExecuteScalarAsync();
+        object? val = await cmd.ExecuteScalarAsync();
+
+        return val is null ? default : (Tscalar)val;
     }
 
-    public async Task<int> ExecuteNonQueryAsync(string sql, Dictionary<string, object> parameters)
+    public async Task<int> ExecuteNonQueryAsync(string sql, Dictionary<string, object>? parameters = null)
     {
         await ConnectAsync();
 
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if (parameters != null)
+        if (parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
@@ -90,7 +92,7 @@ public partial class SqlExecHelper
         }
     }
 
-    public async Task<object> ExecuteScalarQueryAsync<Tscalar>(SqlQueryBuilderBase builder)
+    public async Task<Tscalar?> ExecuteScalarQueryAsync<Tscalar>(SqlQueryBuilderBase builder)
     {
         await ConnectAsync();
 
@@ -100,7 +102,9 @@ public partial class SqlExecHelper
         foreach (var (key, value) in builder.GetParameters())
             cmd.Parameters.AddWithValue(key, value);
 
-        return await cmd.ExecuteScalarAsync();
+        object? val = await cmd.ExecuteScalarAsync();
+
+        return val is null ? default : (Tscalar)val;
     }
 
     public async Task<int> ExecuteNonQueryAsync(SqlQueryBuilderBase builder)

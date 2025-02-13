@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\khothemegiatot.ADO.NET\khothemegiatot.ADO.NET.csproj" />
+    <ProjectReference Include="..\khothemegiatot.ADO.NET\OmniSciLab.Sql.csproj" />
     <ProjectReference Include="..\khothemegiatot.NoSQL\khothemegiatot.NoSQL.csproj" />
   </ItemGroup>
 

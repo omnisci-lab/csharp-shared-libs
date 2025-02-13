@@ -19,12 +19,12 @@ public class SqlMapper
 
         foreach (PropertyInfo tProperty in tProperties)
         {
-            SqlColumnAttribute attribute = tProperty.GetCustomAttribute<SqlColumnAttribute>();
+            SqlColumnAttribute? attribute = tProperty.GetCustomAttribute<SqlColumnAttribute>();
             string columnName = attribute is null ? tProperty.Name : attribute.ColumnName;
 
-            if (reader.HasColumn(attribute.ColumnName) && !reader.IsDBNull(reader.GetOrdinal(attribute.ColumnName)))
+            if (reader.HasColumn(columnName) && !reader.IsDBNull(reader.GetOrdinal(columnName)))
             {
-                object value = reader.GetValue(reader.GetOrdinal(attribute.ColumnName));
+                object value = reader.GetValue(reader.GetOrdinal(columnName));
                 tProperty.SetValue(instance, Convert.ChangeType(value, tProperty.PropertyType));
             }
         }

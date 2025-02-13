@@ -2,7 +2,7 @@
 
 public class WhereClause
 {
-    public string Column { get; set; }
-    public string Operator { get; set; }
-    public string Value { get; set; }
+    public string Column { get; set; } = default!;
+    public string Operator { get; set; } = default!;
+    public string Value { get; set; } = default!;
 }

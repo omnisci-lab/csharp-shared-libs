@@ -18,6 +18,6 @@ public static class ReflectionCache
 
     public static T GetObject<T>()
     {
-        return (T) objectCache.GetOrAdd(typeof(T), t => Activator.CreateInstance(t));
+        return (T) objectCache.GetOrAdd(typeof(T), t => Activator.CreateInstance(t)!);
     }
 }

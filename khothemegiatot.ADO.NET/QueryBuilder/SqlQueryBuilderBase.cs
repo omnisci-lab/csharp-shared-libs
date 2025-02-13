@@ -12,6 +12,7 @@ public class SqlQueryBuilderBase
 
     protected SqlQueryBuilderBase()
     {
+        tableName = null!;
         query = new StringBuilder();
         columns = new List<string>();
         conditions = new List<string>();

@@ -35,7 +35,7 @@ public partial class SqlExecHelper : IDisposable
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if(parameters != null)
+        if(parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
@@ -48,14 +48,14 @@ public partial class SqlExecHelper : IDisposable
         }
     }
 
-    public object ExecuteScalarQuery<Tscalar>(string sql, Dictionary<string, object> parameters)
+    public Tscalar ExecuteScalarQuery<Tscalar>(string sql, Dictionary<string, object>? parameters = null)
     {
         Connect();
 
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if (parameters != null)
+        if (parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
@@ -64,14 +64,14 @@ public partial class SqlExecHelper : IDisposable
         return (Tscalar) cmd.ExecuteScalar();
     }
 
-    public int ExecuteNonQuery(string sql, Dictionary<string, object> parameters)
+    public int ExecuteNonQuery(string sql, Dictionary<string, object>? parameters = null)
     {
         Connect();
 
         using SqlCommand cmd = new SqlCommand(sql, _connection);
         cmd.CommandType = CommandType.Text;
 
-        if (parameters != null)
+        if (parameters == null)
             parameters = new Dictionary<string, object>();
 
         foreach (var (key, value) in parameters)
@@ -111,7 +111,7 @@ public partial class SqlExecHelper : IDisposable
         }
     }
 
-    public object ExecuteScalarQuery<Tscalar>(SqlQueryBuilderBase builder)
+    public Tscalar ExecuteScalarQuery<Tscalar>(SqlQueryBuilderBase builder)
     {
         Connect();
 

@@ -1,7 +1,6 @@
 ﻿using khothemegiatot.ADO.NET.Attributes;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
-using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 
@@ -10,6 +9,7 @@ namespace khothemegiatot.ADO.NET.QueryBuilder;
 /*** SqlQueryBuilder class
  * 
  * This class is used to build SQL queries
+ * Author: OmniSciLab
  * Author: Phan Xuân Chánh { Chinese Charater: 潘春正, EnglishName1: Chanh Xuan Phan, EnglishName2: StevePhan }
  *  - www.phanxuanchanh.com
  */
@@ -31,16 +31,16 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
      * @param selector
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Select<T>(Expression<Func<T, object>> selector = null) where T : ISqlTable, new()
+    public static SqlQueryBuilder Select<T>(Expression<Func<T, object>>? selector = null) where T : ISqlTable, new()
     {
         SqlQueryBuilder builder = new SqlQueryBuilder();
         T instance = ReflectionCache.GetObject<T>();
         Type ttype = typeof(T);
-        SqlTableAttribute tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        object selectorObject = null;
-        string[] selectorColumnList = null;
-        (Type, string) cacheKey = (ttype, null);
+        object? selectorObject = null;
+        string[]? selectorColumnList = null;
+        (Type, string) cacheKey = (ttype, null)!;
         if (selector is not null)
         {
             selectorObject = selector.Compile().Invoke(instance);
@@ -48,7 +48,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             selectorColumnList = selectorObject.GetType().GetProperties().Select(p => p.Name).ToArray();
         }
 
-        string cacheValue = null;
+        string? cacheValue = null;
         if (_selectStatementCache.TryGetValue(cacheKey, out cacheValue))
         {
             builder.query.Append(cacheValue);
@@ -66,18 +66,18 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        if (selectorColumnList.Length == 0)
+        if (selectorColumnList!.Length == 0)
             throw new ArgumentException("No columns selected");
 
         PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
         List<string> columnList = new List<string>();
         foreach (string selectorColumn in selectorColumnList)
         {
-            PropertyInfo tProperty = tProperties.FirstOrDefault(p => p.Name == selectorColumn);
+            PropertyInfo? tProperty = tProperties.FirstOrDefault(p => p.Name == selectorColumn);
             if (tProperty is null)
                 continue;
 
-            SqlColumnAttribute sqlColumnAttribute = tProperty.GetCustomAttribute<SqlColumnAttribute>();
+            SqlColumnAttribute? sqlColumnAttribute = tProperty.GetCustomAttribute<SqlColumnAttribute>();
             if (sqlColumnAttribute is null)
                 columnList.Add($"[{selectorColumn}]");
             else
@@ -100,9 +100,9 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
         SqlQueryBuilder builder = new SqlQueryBuilder();
         PropertyInfo[] recordProperties = ReflectionCache.GetProperties<T>();
         Type ttype = typeof(T);
-        SqlTableAttribute tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        if (_insertStatementCache.TryGetValue(ttype, out string cacheValue))
+        if (_insertStatementCache.TryGetValue(ttype, out string? cacheValue))
         {
             builder.query.Append(cacheValue);
             return builder;
@@ -115,15 +115,15 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
 
         foreach (PropertyInfo property in recordProperties)
         {
-            SqlColumnAttribute columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
-            string columnName = null;
+            SqlColumnAttribute? columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
+            string? columnName = null;
 
             if (columnAttribute is null)
             {
                 columnName = property.Name;
                 insertColumnBuilder.Append($"[{columnName}], ");
                 setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                builder.parameters[$"@{columnName}"] = property.GetValue(record);
+                builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
             }
             else
             {
@@ -136,7 +136,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                 {
                     insertColumnBuilder.Append($"[{columnName}], ");
                     setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                    builder.parameters[$"@{columnName}"] = property.GetValue(record);
+                    builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
                 }
             }
         }
@@ -155,15 +155,15 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
      * @param selector
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Update<T>(T record, Expression<Func<T, object>> selector = null)
+    public static SqlQueryBuilder Update<T>(T record, Expression<Func<T, object>>? selector = null)
     {
         SqlQueryBuilder builder = new SqlQueryBuilder();
         Type ttype = typeof(T);
-        SqlTableAttribute tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        object selectorObject = null;
-        string[] selectorColumnList = null;
-        (Type, string) cacheKey = (ttype, null);
+        object? selectorObject = null;
+        string[]? selectorColumnList = null;
+        (Type, string) cacheKey = (ttype, null)!;
         if (selector is not null)
         {
             selectorObject = selector.Compile().Invoke(record);
@@ -171,7 +171,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             selectorColumnList = selectorObject.GetType().GetProperties().Select(p => p.Name).ToArray();
         }
 
-        string cacheValue = null;
+        string? cacheValue = null;
         if (_updateStatementCache.TryGetValue(cacheKey, out cacheValue))
         {
             builder.query.Append(cacheValue);
@@ -180,12 +180,12 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
 
         builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
 
-        PropertyInfo[] recordProperties = null;
+        PropertyInfo[]? recordProperties = null;
         if (selectorObject is null)
             recordProperties = ReflectionCache.GetProperties<T>();
         else
         {
-            if (selectorColumnList.Length == 0)
+            if (selectorColumnList!.Length == 0)
                 throw new ArgumentException("No columns selected");
 
             recordProperties = ReflectionCache.GetProperties<T>()
@@ -196,14 +196,14 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
 
         foreach (PropertyInfo property in recordProperties)
         {
-            SqlColumnAttribute columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
-            string columnName = null;
+            SqlColumnAttribute? columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
+            string? columnName = null;
 
             if (columnAttribute is null)
             {
                 columnName = property.Name;
                 setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                builder.parameters[$"@{columnName}"] = property.GetValue(record);
+                builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
             }
             else
             {
@@ -215,7 +215,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                 else
                 {
                     setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                    builder.parameters[$"@{columnName}"] = property.GetValue(record);
+                    builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
                 }
             }
         }
@@ -234,10 +234,23 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
     {
         SqlQueryBuilder builder = new SqlQueryBuilder();
         Type ttype = typeof(T);
-        SqlTableAttribute tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
         builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
         builder.query.Append($"DELETE FROM [{builder.tableName}]");
+
+        return builder;
+    }
+
+    public static SqlQueryBuilder Count<T>()
+    {
+        SqlQueryBuilder builder = new SqlQueryBuilder();
+        T instance = ReflectionCache.GetObject<T>();
+        Type ttype = typeof(T);
+        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+
+        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.query.Append($"SELECT COUNT(*) FROM [{builder.tableName}]");
 
         return builder;
     }
@@ -258,33 +271,33 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
 
     private string ParseExpression(Expression expression, PropertyInfo[] properties, ref int anonymousParamsCount)
     {
-        string paramKey = null;
+        string? paramKey = null;
         switch (expression)
         {
             case BinaryExpression binaryExpression:
                 return ParseBinaryExpression(binaryExpression, properties, ref anonymousParamsCount);
             case MemberExpression memberExpression:
-                PropertyInfo property = properties.FirstOrDefault(p => p.Name == memberExpression.Member.Name);
+                PropertyInfo? property = properties.FirstOrDefault(p => p.Name == memberExpression.Member.Name);
                 if(property is null)
                 {
                     if (!(memberExpression.Member is FieldInfo fieldInfo))
                         throw new Exception($"");
 
-                    ConstantExpression closureExpression = (ConstantExpression) memberExpression.Expression;
+                    ConstantExpression closureExpression = (ConstantExpression) memberExpression.Expression!;
 
-                    object val = fieldInfo.GetValue(closureExpression.Value);
+                    object? val = fieldInfo.GetValue(closureExpression.Value);
                     paramKey = $"@{memberExpression.Member.Name}";
-                    parameters.Add(paramKey, val);
+                    parameters.Add(paramKey, val!);
 
                     return paramKey;
                 }
 
-                SqlColumnAttribute columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
+                SqlColumnAttribute? columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
 
                 return columnAttribute is null ? $"[{memberExpression.Member.Name}]" : $"[{columnAttribute.ColumnName}]";
             case ConstantExpression constantExpression:
                 paramKey = $"@val{++anonymousParamsCount}";
-                parameters.Add(paramKey, constantExpression.Value);
+                parameters.Add(paramKey, constantExpression.Value!);
                 return paramKey;
             default:
                 throw new NotSupportedException($"Expression type {expression.GetType()} is not supported");
