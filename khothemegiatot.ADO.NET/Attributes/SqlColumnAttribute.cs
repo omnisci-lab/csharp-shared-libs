@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.ADO.NET.Attributes;
+﻿namespace OmniSciLab.Sql.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class SqlColumnAttribute : Attribute

@@ -1,10 +1,10 @@
-﻿using khothemegiatot.ADO.NET.Attributes;
+﻿using OmniSciLab.Sql.Attributes;
 
-namespace khothemegiatot.ADO.NET;
+namespace OmniSciLab.Sql;
 
 public interface ISqlTable
 {
-    
+
 }
 
 public class SqlTableWithTimestamp : ISqlTable

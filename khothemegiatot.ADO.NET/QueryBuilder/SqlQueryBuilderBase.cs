@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Text;
 
-namespace khothemegiatot.ADO.NET.QueryBuilder;
+namespace OmniSciLab.Sql.QueryBuilder;
 
 public class SqlQueryBuilderBase
 {

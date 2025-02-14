@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.ADO.NET.QueryBuilder;
+﻿namespace OmniSciLab.Sql.QueryBuilder;
 
 
 public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
@@ -82,7 +82,7 @@ public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
 
     public SimpleSqlQueryBuilder Where(WhereClause[] whereClauses)
     {
-        foreach(WhereClause clause in whereClauses)
+        foreach (WhereClause clause in whereClauses)
         {
             conditions.Add($"{clause.Column} {clause.Operator} @{clause.Column}");
             parameters[$"@{clause.Column}"] = clause.Value;

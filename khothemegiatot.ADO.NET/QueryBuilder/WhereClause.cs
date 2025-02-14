@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.ADO.NET.QueryBuilder;
+﻿namespace OmniSciLab.Sql.QueryBuilder;
 
 public class WhereClause
 {

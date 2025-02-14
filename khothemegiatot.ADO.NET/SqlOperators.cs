@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.ADO.NET;
+﻿namespace OmniSciLab.Sql;
 
 public class SqlOperators
 {

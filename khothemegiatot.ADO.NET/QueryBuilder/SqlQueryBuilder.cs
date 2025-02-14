@@ -1,12 +1,12 @@
-﻿using khothemegiatot.ADO.NET.Attributes;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
+using OmniSciLab.Sql.Attributes;
 using OmniSciLab.Sql.Cache;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace khothemegiatot.ADO.NET.QueryBuilder;
+namespace OmniSciLab.Sql.QueryBuilder;
 
 /*** SqlQueryBuilder class
  * 
@@ -15,7 +15,115 @@ namespace khothemegiatot.ADO.NET.QueryBuilder;
  * Author: Phan Xuân Chánh { Chinese Charater: 潘春正, EnglishName1: Chanh Xuan Phan, EnglishName2: StevePhan }
  *  - www.phanxuanchanh.com
  */
-public class SqlQueryBuilder : SqlQueryBuilderBase
+
+public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTable, new()
+{
+    private readonly bool _createInstance;
+    private readonly bool _getType;
+
+    private readonly Type? _ttype;
+    private readonly T? _instance;
+
+    protected SqlQueryBuilder(bool createInstance = false, bool getType = false)
+        : base()
+    {
+        _createInstance = createInstance;
+        _getType = getType;
+
+        if (createInstance)
+            _instance = ReflectionCache.GetObject<T>();
+
+        if (getType)
+            _ttype = typeof(T);
+    }
+
+    /*** Set table name
+     * 
+     * @param ttype
+     */
+    private void SetTableName()
+    {
+        SqlTableAttribute? tableAttribute = _ttype?.GetCustomAttribute<SqlTableAttribute>() ?? throw new NullReferenceException(nameof(_ttype));
+        _tableName = tableAttribute is null ? _ttype.Name : tableAttribute.TableName;
+    }
+
+    public SqlQueryBuilder<T> Where(Expression<Func<T, bool>> expression)
+    {
+        if (expression == null)
+            throw new ArgumentNullException(nameof(expression));
+
+        PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
+        int anonymousParamsCount = 0;
+        string where = ParseExpression(expression.Body, tProperties, ref anonymousParamsCount);
+
+        conditions.Add(where);
+
+        return this;
+    }
+
+    private string ParseExpression(Expression expression, PropertyInfo[] properties, ref int anonymousParamsCount)
+    {
+        string? paramKey = null;
+        switch (expression)
+        {
+            case BinaryExpression binaryExpression:
+                return ParseBinaryExpression(binaryExpression, properties, ref anonymousParamsCount);
+            case MemberExpression memberExpression:
+                PropertyInfo? property = properties.FirstOrDefault(p => p.Name == memberExpression.Member.Name);
+                if (property is null)
+                {
+                    if (!(memberExpression.Member is FieldInfo fieldInfo))
+                        throw new Exception($"");
+
+                    ConstantExpression closureExpression = (ConstantExpression)memberExpression.Expression!;
+
+                    object? val = fieldInfo.GetValue(closureExpression.Value);
+                    paramKey = $"@{memberExpression.Member.Name}";
+                    parameters.Add(paramKey, val ?? DBNull.Value);
+
+                    return paramKey;
+                }
+
+                SqlColumnAttribute? columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
+
+                return columnAttribute is null ? $"[{memberExpression.Member.Name}]" : $"[{columnAttribute.ColumnName}]";
+            case ConstantExpression constantExpression:
+                paramKey = $"@val{++anonymousParamsCount}";
+                parameters.Add(paramKey, constantExpression.Value ?? DBNull.Value);
+                return paramKey;
+            default:
+                throw new NotSupportedException($"Expression type {expression.GetType()} is not supported");
+        }
+    }
+
+    private string ParseBinaryExpression(BinaryExpression binaryExpression, PropertyInfo[] properties, ref int anonymousParamsCount)
+    {
+        var left = ParseExpression(binaryExpression.Left, properties, ref anonymousParamsCount);
+        var right = ParseExpression(binaryExpression.Right, properties, ref anonymousParamsCount);
+        var operatorString = GetSqlOperator(binaryExpression.NodeType);
+
+        return $"{left} {operatorString} {right}";
+    }
+
+    private string GetSqlOperator(ExpressionType nodeType)
+    {
+        return nodeType switch
+        {
+            ExpressionType.Equal => "=",
+            ExpressionType.NotEqual => "!=",
+            ExpressionType.GreaterThan => ">",
+            ExpressionType.LessThan => "<",
+            ExpressionType.GreaterThanOrEqual => ">=",
+            ExpressionType.LessThanOrEqual => "<=",
+            ExpressionType.AndAlso => "AND",
+            ExpressionType.OrElse => "OR",
+            _ => throw new NotSupportedException($"Operator {nodeType} not supported")
+        };
+    }
+
+}
+
+public partial class SqlQueryBuilder<T>
 {
     private static readonly ConcurrentDictionary<(Type, string), string> _selectStatementCache
         = new ConcurrentDictionary<(Type, string), string>();
@@ -26,29 +134,29 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
     private static readonly ConcurrentDictionary<Type, string> _insertStatementCache
         = new ConcurrentDictionary<Type, string>();
 
-    protected SqlQueryBuilder() : base() { }
+    private static void Selector(SqlQueryBuilder<T> builder, Expression<Func<T, object>>? selector, out object? selectorObject, out string[]? selectorColumnList, out (Type, string) cacheKey)
+    {
+        selectorObject = null;
+        selectorColumnList = null;
+        cacheKey = (builder._ttype ?? throw new NullReferenceException(nameof(builder._ttype)), null)!;
+
+        if (selector is not null)
+        {
+            selectorObject = selector.Compile().Invoke(builder._instance ?? throw new NullReferenceException(nameof(builder._instance)));
+            cacheKey.Item2 = selector.ToString();
+            selectorColumnList = selectorObject.GetType().GetProperties().Select(p => p.Name).ToArray();
+        }
+    }
 
     /*** Select statement builder
      * 
      * @param selector
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Select<T>(Expression<Func<T, object>>? selector = null) where T : ISqlTable, new()
+    public static SqlQueryBuilder<T> Select(Expression<Func<T, object>>? selector = null)
     {
-        SqlQueryBuilder builder = new SqlQueryBuilder();
-        T instance = ReflectionCache.GetObject<T>();
-        Type ttype = typeof(T);
-        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
-
-        object? selectorObject = null;
-        string[]? selectorColumnList = null;
-        (Type, string) cacheKey = (ttype, null)!;
-        if (selector is not null)
-        {
-            selectorObject = selector.Compile().Invoke(instance);
-            cacheKey.Item2 = selector.ToString();
-            selectorColumnList = selectorObject.GetType().GetProperties().Select(p => p.Name).ToArray();
-        }
+        SqlQueryBuilder<T> builder = new SqlQueryBuilder<T>(createInstance: true, getType: true);
+        Selector(builder, selector, out object? selectorObject, out string[]? selectorColumnList, out (Type, string) cacheKey);
 
         string? cacheValue = null;
         if (_selectStatementCache.TryGetValue(cacheKey, out cacheValue))
@@ -58,7 +166,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.SetTableName();
 
         if (selectorObject is null)
         {
@@ -97,20 +205,18 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
      * @param record
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Insert<T>(T record)
+    public static SqlQueryBuilder<T> Insert(T record)
     {
-        SqlQueryBuilder builder = new SqlQueryBuilder();
+        SqlQueryBuilder<T> builder = new SqlQueryBuilder<T>(getType: true);
         PropertyInfo[] recordProperties = ReflectionCache.GetProperties<T>();
-        Type ttype = typeof(T);
-        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        if (_insertStatementCache.TryGetValue(ttype, out string? cacheValue))
+        if (_insertStatementCache.TryGetValue(builder._ttype ?? throw new NullReferenceException(nameof(builder._ttype)), out string? cacheValue))
         {
             builder.query.Append(cacheValue);
             return builder;
         }
 
-        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.SetTableName();
 
         StringBuilder insertColumnBuilder = new StringBuilder("(");
         StringBuilder setValueBuilder = new StringBuilder("");
@@ -148,7 +254,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
         insertColumnBuilder.Length -= 2;
         setValueBuilder.Length -= 2;
         builder.query.Append($"INSERT INTO [{builder._tableName}] ({insertColumnBuilder}) VALUES ({setValueBuilder})");
-        _insertStatementCache.AddOrUpdate(ttype, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
+        _insertStatementCache.AddOrUpdate(builder._ttype, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
 
         return builder;
     }
@@ -159,11 +265,11 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
      * @param selector
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Update<T>(T record, Expression<Func<T, object>>? selector = null)
+    public static SqlQueryBuilder<T> Update(T record, Expression<Func<T, object>>? selector = null)
     {
-        SqlQueryBuilder builder = new SqlQueryBuilder();
+        SqlQueryBuilder<T> builder = new SqlQueryBuilder<T>(getType: true);
         Type ttype = typeof(T);
-        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        //Selector(builder, selector, out object? selectorObject, out string[]? selectorColumnList, out (Type, string) cacheKey);
 
         object? selectorObject = null;
         string[]? selectorColumnList = null;
@@ -182,7 +288,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.SetTableName();
 
         PropertyInfo[]? recordProperties = null;
         if (selectorObject is null)
@@ -234,102 +340,27 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
      * 
      * @return SqlQueryBuilder
      */
-    public static SqlQueryBuilder Delete<T>()
+    public static SqlQueryBuilder<T> Delete()
     {
-        SqlQueryBuilder builder = new SqlQueryBuilder();
-        Type ttype = typeof(T);
-        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlQueryBuilder<T> builder = new SqlQueryBuilder<T>(getType: true);
 
-        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.SetTableName();
         builder.query.Append($"DELETE FROM [{builder._tableName}]");
 
         return builder;
     }
 
-    public static SqlQueryBuilder Count<T>()
+    /*** 
+     * 
+     * @return SqlQueryBuilder
+     */
+    public static SqlQueryBuilder<T> Count()
     {
-        SqlQueryBuilder builder = new SqlQueryBuilder();
-        T instance = ReflectionCache.GetObject<T>();
-        Type ttype = typeof(T);
-        SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
+        SqlQueryBuilder<T> builder = new SqlQueryBuilder<T>(getType: true);
 
-        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.SetTableName();
         builder.query.Append($"SELECT COUNT(*) FROM [{builder._tableName}]");
 
         return builder;
-    }
-
-    public SqlQueryBuilder Where<T>(Expression<Func<T, bool>> expression) where T : ISqlTable, new()
-    {
-        if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-
-        PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
-        int anonymousParamsCount = 0;
-        string where = ParseExpression(expression.Body, tProperties, ref anonymousParamsCount);
-
-        conditions.Add(where);
-
-        return this;
-    }
-
-    private string ParseExpression(Expression expression, PropertyInfo[] properties, ref int anonymousParamsCount)
-    {
-        string? paramKey = null;
-        switch (expression)
-        {
-            case BinaryExpression binaryExpression:
-                return ParseBinaryExpression(binaryExpression, properties, ref anonymousParamsCount);
-            case MemberExpression memberExpression:
-                PropertyInfo? property = properties.FirstOrDefault(p => p.Name == memberExpression.Member.Name);
-                if(property is null)
-                {
-                    if (!(memberExpression.Member is FieldInfo fieldInfo))
-                        throw new Exception($"");
-
-                    ConstantExpression closureExpression = (ConstantExpression) memberExpression.Expression!;
-
-                    object? val = fieldInfo.GetValue(closureExpression.Value);
-                    paramKey = $"@{memberExpression.Member.Name}";
-                    parameters.Add(paramKey, val ?? (object)DBNull.Value);
-
-                    return paramKey;
-                }
-
-                SqlColumnAttribute? columnAttribute = property.GetCustomAttribute<SqlColumnAttribute>();
-
-                return columnAttribute is null ? $"[{memberExpression.Member.Name}]" : $"[{columnAttribute.ColumnName}]";
-            case ConstantExpression constantExpression:
-                paramKey = $"@val{++anonymousParamsCount}";
-                parameters.Add(paramKey, constantExpression.Value ?? (object)DBNull.Value);
-                return paramKey;
-            default:
-                throw new NotSupportedException($"Expression type {expression.GetType()} is not supported");
-        }
-    }
-
-    private string ParseBinaryExpression(BinaryExpression binaryExpression, PropertyInfo[] properties, ref int anonymousParamsCount)
-    {
-        var left = ParseExpression(binaryExpression.Left, properties, ref anonymousParamsCount);
-        var right = ParseExpression(binaryExpression.Right, properties, ref anonymousParamsCount);
-        var operatorString = GetSqlOperator(binaryExpression.NodeType);
-
-        return $"{left} {operatorString} {right}";
-    }
-
-    private string GetSqlOperator(ExpressionType nodeType)
-    {
-        return nodeType switch
-        {
-            ExpressionType.Equal => "=",
-            ExpressionType.NotEqual => "!=",
-            ExpressionType.GreaterThan => ">",
-            ExpressionType.LessThan => "<",
-            ExpressionType.GreaterThanOrEqual => ">=",
-            ExpressionType.LessThanOrEqual => "<=",
-            ExpressionType.AndAlso => "AND",
-            ExpressionType.OrElse => "OR",
-            _ => throw new NotSupportedException($"Operator {nodeType} not supported")
-        };
     }
 }

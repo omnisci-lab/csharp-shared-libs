@@ -1,8 +1,8 @@
 ﻿using System.Data;
-using khothemegiatot.ADO.NET.QueryBuilder;
 using Microsoft.Data.SqlClient;
+using OmniSciLab.Sql.QueryBuilder;
 
-namespace khothemegiatot.ADO.NET;
+namespace OmniSciLab.Sql;
 
 public partial class SqlExecHelper : IDisposable
 {

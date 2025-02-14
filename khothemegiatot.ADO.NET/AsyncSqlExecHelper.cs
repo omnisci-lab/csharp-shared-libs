@@ -1,9 +1,9 @@
 ﻿using System.Data.Common;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using khothemegiatot.ADO.NET.QueryBuilder;
+using OmniSciLab.Sql.QueryBuilder;
 
-namespace khothemegiatot.ADO.NET;
+namespace OmniSciLab.Sql;
 
 public partial class SqlExecHelper
 {

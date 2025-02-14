@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using System;
-namespace khothemegiatot.ADO.NET;
+namespace OmniSciLab.Sql;
 
 public static class SqlDataReaderExtensions
 {
