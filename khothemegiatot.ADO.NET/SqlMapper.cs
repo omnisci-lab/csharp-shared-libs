@@ -1,5 +1,6 @@
 ﻿using khothemegiatot.ADO.NET.Attributes;
 using Microsoft.Data.SqlClient;
+using OmniSciLab.Sql.Cache;
 using System.Reflection;
 
 namespace khothemegiatot.ADO.NET;

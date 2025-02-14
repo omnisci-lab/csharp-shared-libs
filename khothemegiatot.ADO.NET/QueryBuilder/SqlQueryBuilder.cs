@@ -1,4 +1,6 @@
 ﻿using khothemegiatot.ADO.NET.Attributes;
+using Microsoft.Data.SqlClient;
+using OmniSciLab.Sql.Cache;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -56,11 +58,11 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
 
         if (selectorObject is null)
         {
-            builder.query.Append($"SELECT * FROM [{builder.tableName}]");
+            builder.query.Append($"SELECT * FROM [{builder._tableName}]");
             _selectStatementCache.AddOrUpdate(cacheKey, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
 
             return builder;
@@ -84,7 +86,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                 columnList.Add($"[{sqlColumnAttribute.ColumnName}]");
         }
 
-        builder.query.Append($"SELECT {string.Join(", ", columnList)} FROM [{builder.tableName}]");
+        builder.query.Append($"SELECT {string.Join(", ", columnList)} FROM [{builder._tableName}]");
         _selectStatementCache.AddOrUpdate(cacheKey, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
 
         return builder;
@@ -108,7 +110,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
 
         StringBuilder insertColumnBuilder = new StringBuilder("(");
         StringBuilder setValueBuilder = new StringBuilder("");
@@ -124,6 +126,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                 insertColumnBuilder.Append($"[{columnName}], ");
                 setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
                 builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
+                builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
             }
             else
             {
@@ -137,13 +140,14 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                     insertColumnBuilder.Append($"[{columnName}], ");
                     setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
                     builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
+                    builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
                 }
             }
         }
 
         insertColumnBuilder.Length -= 2;
         setValueBuilder.Length -= 2;
-        builder.query.Append($"INSERT INTO [{builder.tableName}] ({insertColumnBuilder}) VALUES ({setValueBuilder})");
+        builder.query.Append($"INSERT INTO [{builder._tableName}] ({insertColumnBuilder}) VALUES ({setValueBuilder})");
         _insertStatementCache.AddOrUpdate(ttype, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
 
         return builder;
@@ -178,7 +182,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             return builder;
         }
 
-        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
 
         PropertyInfo[]? recordProperties = null;
         if (selectorObject is null)
@@ -220,7 +224,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
             }
         }
         setValueBuilder.Length -= 2;
-        builder.query.Append($"UPDATE [{builder.tableName}] SET {setValueBuilder}");
+        builder.query.Append($"UPDATE [{builder._tableName}] SET {setValueBuilder}");
         _updateStatementCache.AddOrUpdate(cacheKey, builder.query.ToString(), (key, oldvalue) => builder.query.ToString());
 
         return builder;
@@ -236,8 +240,8 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
         Type ttype = typeof(T);
         SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
-        builder.query.Append($"DELETE FROM [{builder.tableName}]");
+        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.query.Append($"DELETE FROM [{builder._tableName}]");
 
         return builder;
     }
@@ -249,8 +253,8 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
         Type ttype = typeof(T);
         SqlTableAttribute? tableAttribute = ttype.GetCustomAttribute<SqlTableAttribute>();
 
-        builder.tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
-        builder.query.Append($"SELECT COUNT(*) FROM [{builder.tableName}]");
+        builder._tableName = tableAttribute is null ? ttype.Name : tableAttribute.TableName;
+        builder.query.Append($"SELECT COUNT(*) FROM [{builder._tableName}]");
 
         return builder;
     }
@@ -287,7 +291,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
 
                     object? val = fieldInfo.GetValue(closureExpression.Value);
                     paramKey = $"@{memberExpression.Member.Name}";
-                    parameters.Add(paramKey, val!);
+                    parameters.Add(paramKey, val ?? (object)DBNull.Value);
 
                     return paramKey;
                 }
@@ -297,7 +301,7 @@ public class SqlQueryBuilder : SqlQueryBuilderBase
                 return columnAttribute is null ? $"[{memberExpression.Member.Name}]" : $"[{columnAttribute.ColumnName}]";
             case ConstantExpression constantExpression:
                 paramKey = $"@val{++anonymousParamsCount}";
-                parameters.Add(paramKey, constantExpression.Value!);
+                parameters.Add(paramKey, constantExpression.Value ?? (object)DBNull.Value);
                 return paramKey;
             default:
                 throw new NotSupportedException($"Expression type {expression.GetType()} is not supported");

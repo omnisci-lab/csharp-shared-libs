@@ -1,14 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace khothemegiatot.ADO.NET;
+namespace OmniSciLab.Sql.Cache;
 
 public static class ReflectionCache
 {
     private static readonly ConcurrentDictionary<Type, object> objectCache
         = new ConcurrentDictionary<Type, object>();
 
-    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> propertyCache 
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> propertyCache
         = new ConcurrentDictionary<Type, PropertyInfo[]>();
 
     public static PropertyInfo[] GetProperties<T>()
@@ -18,6 +18,6 @@ public static class ReflectionCache
 
     public static T GetObject<T>()
     {
-        return (T) objectCache.GetOrAdd(typeof(T), t => Activator.CreateInstance(t)!);
+        return (T)objectCache.GetOrAdd(typeof(T), t => Activator.CreateInstance(t)!);
     }
 }

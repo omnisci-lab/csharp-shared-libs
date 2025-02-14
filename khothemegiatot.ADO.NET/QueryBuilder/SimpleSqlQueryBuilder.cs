@@ -8,13 +8,13 @@ public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
     public static SimpleSqlQueryBuilder Select(string tableName, params string[] columns)
     {
         SimpleSqlQueryBuilder builder = new SimpleSqlQueryBuilder();
-        builder.tableName = tableName;
+        builder._tableName = tableName;
         builder.query.Clear();
         builder.columns.Clear();
         builder.conditions.Clear();
 
         string columnList = columns.Length > 0 ? string.Join(", ", columns) : "*";
-        builder.query.Append($"SELECT {columnList} FROM {builder.tableName}");
+        builder.query.Append($"SELECT {columnList} FROM {builder._tableName}");
 
         return builder;
     }
@@ -22,10 +22,10 @@ public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
     public static SimpleSqlQueryBuilder Insert(string tableName, Dictionary<string, object> values)
     {
         SimpleSqlQueryBuilder builder = new SimpleSqlQueryBuilder();
-        builder.tableName = tableName;
+        builder._tableName = tableName;
         builder.query.Clear();
         builder.parameters.Clear();
-        builder.query.Append($"INSERT INTO {builder.tableName} ({string.Join(", ", values.Keys)}) ");
+        builder.query.Append($"INSERT INTO {builder._tableName} ({string.Join(", ", values.Keys)}) ");
         builder.query.Append($"VALUES ({string.Join(", ", values.Keys.Select(k => $"@{k}"))})");
 
         foreach (var value in values)
@@ -45,10 +45,10 @@ public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
     public static SimpleSqlQueryBuilder Update(string tableName, Dictionary<string, object> values)
     {
         SimpleSqlQueryBuilder builder = new SimpleSqlQueryBuilder();
-        builder.tableName = tableName;
+        builder._tableName = tableName;
         builder.query.Clear();
         builder.parameters.Clear();
-        builder.query.Append($"UPDATE {builder.tableName} SET ");
+        builder.query.Append($"UPDATE {builder._tableName} SET ");
 
         if (values is null)
             throw new NullReferenceException();
@@ -67,9 +67,9 @@ public partial class SimpleSqlQueryBuilder : SqlQueryBuilderBase
     public static SimpleSqlQueryBuilder Delete(string tableName)
     {
         SimpleSqlQueryBuilder builder = new SimpleSqlQueryBuilder();
-        builder.tableName = tableName;
+        builder._tableName = tableName;
         builder.query.Clear();
-        builder.query.Append($"DELETE FROM {builder.tableName}");
+        builder.query.Append($"DELETE FROM {builder._tableName}");
 
         return builder;
     }
