@@ -7,7 +7,6 @@ public class SqlQueryBuilderBase
 {
     protected string _tableName;
     protected readonly StringBuilder query;
-    protected readonly Dictionary<string, object> parameters;
     protected readonly List<SqlParameter> _parameters;
 
     protected readonly List<string> columns;
@@ -17,10 +16,9 @@ public class SqlQueryBuilderBase
     {
         _tableName = null!;
         query = new StringBuilder();
+        _parameters = new List<SqlParameter>();
         columns = new List<string>();
         conditions = new List<string>();
-        parameters = new Dictionary<string, object>();
-        _parameters = new List<SqlParameter>();
     }
 
     public string BuildQuery()
@@ -34,8 +32,8 @@ public class SqlQueryBuilderBase
         return $"{query.ToString()} {whereClause}";
     }
 
-    public Dictionary<string, object> GetParameters()
+    public List<SqlParameter> GetParameters()
     {
-        return parameters;
+        return _parameters;
     }
 }

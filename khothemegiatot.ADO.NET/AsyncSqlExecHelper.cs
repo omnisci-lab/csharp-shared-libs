@@ -80,9 +80,7 @@ public partial class SqlExecHelper
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
@@ -98,9 +96,7 @@ public partial class SqlExecHelper
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         object? val = await cmd.ExecuteScalarAsync();
 
@@ -113,9 +109,7 @@ public partial class SqlExecHelper
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         return await cmd.ExecuteNonQueryAsync();
     }

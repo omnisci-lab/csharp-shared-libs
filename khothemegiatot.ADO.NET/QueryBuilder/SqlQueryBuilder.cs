@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OmniSciLab.Sql.QueryBuilder;
 
@@ -15,7 +16,6 @@ namespace OmniSciLab.Sql.QueryBuilder;
  * Author: Phan Xuân Chánh { Chinese Charater: 潘春正, EnglishName1: Chanh Xuan Phan, EnglishName2: StevePhan }
  *  - www.phanxuanchanh.com
  */
-
 public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTable, new()
 {
     private readonly bool _createInstance;
@@ -23,6 +23,8 @@ public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTabl
 
     private readonly Type? _ttype;
     private readonly T? _instance;
+
+    private int _anonymousParamsCount;
 
     protected SqlQueryBuilder(bool createInstance = false, bool getType = false)
         : base()
@@ -35,6 +37,8 @@ public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTabl
 
         if (getType)
             _ttype = typeof(T);
+
+        _anonymousParamsCount = 0;
     }
 
     /*** Set table name
@@ -53,21 +57,39 @@ public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTabl
             throw new ArgumentNullException(nameof(expression));
 
         PropertyInfo[] tProperties = ReflectionCache.GetProperties<T>();
-        int anonymousParamsCount = 0;
-        string where = ParseExpression(expression.Body, tProperties, ref anonymousParamsCount);
+        List<string> paramKeys = new List<string>();
+        string where = ParseExpression(expression.Body, tProperties, paramKeys);
+
+        foreach(string paramKey in paramKeys)
+        {
+            string pattern = $@"\[(\w+)\]\s*=\s*{Regex.Escape(paramKey)}";
+
+            Match match = Regex.Match(where, pattern);
+            if (match.Success)
+            {
+                string matchedWhere = match.Captures[0].Value;
+                object? paramVal = _parameters.Where(x => x.ParameterName == paramKey).Select(s => s.Value).Single();
+                if (paramVal is DBNull)
+                {
+                    string columnName = matchedWhere.Replace($"= {paramKey}", "");
+
+                    where = where.Replace(matchedWhere, $"{columnName} IS NULL");
+                }
+            }
+        }
 
         conditions.Add(where);
 
         return this;
     }
 
-    private string ParseExpression(Expression expression, PropertyInfo[] properties, ref int anonymousParamsCount)
+    private string ParseExpression(Expression expression, PropertyInfo[] properties, List<string> paramKeys)
     {
         string? paramKey = null;
         switch (expression)
         {
             case BinaryExpression binaryExpression:
-                return ParseBinaryExpression(binaryExpression, properties, ref anonymousParamsCount);
+                return ParseBinaryExpression(binaryExpression, properties, paramKeys);
             case MemberExpression memberExpression:
                 PropertyInfo? property = properties.FirstOrDefault(p => p.Name == memberExpression.Member.Name);
                 if (property is null)
@@ -79,7 +101,8 @@ public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTabl
 
                     object? val = fieldInfo.GetValue(closureExpression.Value);
                     paramKey = $"@{memberExpression.Member.Name}";
-                    parameters.Add(paramKey, val ?? DBNull.Value);
+                    _parameters.Add(new SqlParameter(paramKey, val ?? DBNull.Value));
+                    paramKeys.Add( paramKey);
 
                     return paramKey;
                 }
@@ -88,18 +111,20 @@ public partial class SqlQueryBuilder<T> : SqlQueryBuilderBase where T : ISqlTabl
 
                 return columnAttribute is null ? $"[{memberExpression.Member.Name}]" : $"[{columnAttribute.ColumnName}]";
             case ConstantExpression constantExpression:
-                paramKey = $"@val{++anonymousParamsCount}";
-                parameters.Add(paramKey, constantExpression.Value ?? DBNull.Value);
+                paramKey = $"@val{++_anonymousParamsCount}";
+                _parameters.Add(new SqlParameter(paramKey, constantExpression.Value ?? DBNull.Value));
+                paramKeys.Add(paramKey);
+
                 return paramKey;
             default:
                 throw new NotSupportedException($"Expression type {expression.GetType()} is not supported");
         }
     }
 
-    private string ParseBinaryExpression(BinaryExpression binaryExpression, PropertyInfo[] properties, ref int anonymousParamsCount)
+    private string ParseBinaryExpression(BinaryExpression binaryExpression, PropertyInfo[] properties, List<string> paramKeys)
     {
-        var left = ParseExpression(binaryExpression.Left, properties, ref anonymousParamsCount);
-        var right = ParseExpression(binaryExpression.Right, properties, ref anonymousParamsCount);
+        var left = ParseExpression(binaryExpression.Left, properties, paramKeys);
+        var right = ParseExpression(binaryExpression.Right, properties, paramKeys);
         var operatorString = GetSqlOperator(binaryExpression.NodeType);
 
         return $"{left} {operatorString} {right}";
@@ -231,7 +256,6 @@ public partial class SqlQueryBuilder<T>
                 columnName = property.Name;
                 insertColumnBuilder.Append($"[{columnName}], ");
                 setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
                 builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
             }
             else
@@ -245,7 +269,6 @@ public partial class SqlQueryBuilder<T>
                 {
                     insertColumnBuilder.Append($"[{columnName}], ");
                     setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                    builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
                     builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
                 }
             }
@@ -313,7 +336,7 @@ public partial class SqlQueryBuilder<T>
             {
                 columnName = property.Name;
                 setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
+                builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
             }
             else
             {
@@ -325,7 +348,7 @@ public partial class SqlQueryBuilder<T>
                 else
                 {
                     setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
-                    builder.parameters[$"@{columnName}"] = property.GetValue(record)!;
+                    builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
                 }
             }
         }

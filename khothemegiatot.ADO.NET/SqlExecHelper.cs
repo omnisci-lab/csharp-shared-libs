@@ -100,9 +100,7 @@ public partial class SqlExecHelper : IDisposable
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         using SqlDataReader reader = cmd.ExecuteReader();
         while (reader.Read())
@@ -117,9 +115,7 @@ public partial class SqlExecHelper : IDisposable
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         return (Tscalar)cmd.ExecuteScalar();
     }
@@ -130,9 +126,7 @@ public partial class SqlExecHelper : IDisposable
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         return cmd.ExecuteNonQuery();
     }
@@ -143,9 +137,7 @@ public partial class SqlExecHelper : IDisposable
 
         using SqlCommand cmd = new SqlCommand(builder.BuildQuery(), _connection);
         cmd.CommandType = CommandType.Text;
-
-        foreach (var (key, value) in builder.GetParameters())
-            cmd.Parameters.AddWithValue(key, value);
+        cmd.Parameters.AddRange(builder.GetParameters().ToArray());
 
         using SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
         DataTable dataTable = new DataTable();
