@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 
-namespace khothemegiatot.Winform;
+namespace OmniSciLab.WinForm;
 
 public class BootstrapButton : Button
 {

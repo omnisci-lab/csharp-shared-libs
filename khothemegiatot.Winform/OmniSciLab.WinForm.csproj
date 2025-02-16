@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\khothemegiatot.License\khothemegiatot.License.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Forms\LicenseForm.cs">
       <SubType>Form</SubType>
     </Compile>

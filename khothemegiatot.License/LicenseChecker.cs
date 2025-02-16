@@ -1,19 +1,19 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net.WebSockets;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 
-#nullable disable
-
-namespace khothemegiatot.License;
+namespace OmniSciLab.License;
 
 public class LicenseChecker
 {
     private static readonly byte[] Key = Convert.FromBase64String("Re0fHFtvKq+iJYVhCpBcG+GycJoR/6JaUe+VuTrXMbM="); // 32 bytes
     private static readonly byte[] IV = Convert.FromBase64String("vikWrXWXXl2SUqD+DwZpBQ=="); // 16 bytes
 
-    public static async Task<JObject> GetLicenseJsonAsync(string host, string key)
+    public static async Task<JObject?> GetLicenseJsonAsync(string host, string endpoint, string key)
     {
-        string endpoint = $"/api/license/get/";
+        endpoint = $"/api/license/get/";
         using HttpClient httpClient = new HttpClient()
         {
             BaseAddress = new Uri(host)
@@ -71,7 +71,7 @@ public class LicenseChecker
 
     public static async Task<bool> GetAndSaveLicenseAsync(string key)
     {
-        JObject license = await GetLicenseJsonAsync(AppLicense.LicenseMgrHost, key);
+        JObject? license = await GetLicenseJsonAsync(AppLicense.LicenseMgrHost, AppLicense.LicenseMgrEndpoint, key);
 
         if (license is null)
             return false;
@@ -93,8 +93,10 @@ public class LicenseChecker
             if (string.IsNullOrEmpty(licenseJson))
                 return false;
 
-            JObject licenseJObject = JsonConvert.DeserializeObject<JObject>(licenseJson);
-            return (bool)licenseJObject["isActive"];
+            JObject licenseJObject = JsonConvert.DeserializeObject<JObject>(licenseJson)!;
+            JToken? isActive = licenseJObject["isActive"];
+
+            return (isActive is null) ? false : (bool)isActive;
         }
         catch (Exception)
         {

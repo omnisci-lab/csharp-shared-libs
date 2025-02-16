@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace khothemegiatot.Winform;
+namespace OmniSciLab.WinForm;
 
 public static class FormHelper
 {

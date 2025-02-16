@@ -1,11 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace khothemegiatot.Winform;
+namespace OmniSciLab.WinForm;
 
 public class Gdi32PInvoke
 {
     [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
-    public static extern IntPtr CreateRoundRectRgn
+    public static extern nint CreateRoundRectRgn
     (
         int nLeftRect,     // x-coordinate of upper-left corner
         int nTopRect,      // y-coordinate of upper-left corner

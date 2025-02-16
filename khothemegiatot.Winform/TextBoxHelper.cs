@@ -1,4 +1,4 @@
-﻿namespace khothemegiatot.Winform;
+﻿namespace OmniSciLab.WinForm;
 
 public static class TextBoxHelper
 {

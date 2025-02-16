@@ -1,4 +1,4 @@
-﻿using khothemegiatot.License;
+﻿using OmniSciLab.License;
 
 namespace khothemegiatot.Winform;
 
