@@ -243,8 +243,8 @@ public partial class SqlQueryBuilder<T>
 
         builder.SetTableName();
 
-        StringBuilder insertColumnBuilder = new StringBuilder("(");
-        StringBuilder setValueBuilder = new StringBuilder("");
+        StringBuilder insertColumnBuilder = new StringBuilder();
+        StringBuilder setValueBuilder = new StringBuilder();
 
         foreach (PropertyInfo property in recordProperties)
         {
@@ -255,7 +255,7 @@ public partial class SqlQueryBuilder<T>
             {
                 columnName = property.Name;
                 insertColumnBuilder.Append($"[{columnName}], ");
-                setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
+                setValueBuilder.Append($"@{columnName}, ");
                 builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
             }
             else
@@ -268,7 +268,7 @@ public partial class SqlQueryBuilder<T>
                 else
                 {
                     insertColumnBuilder.Append($"[{columnName}], ");
-                    setValueBuilder.Append($"[{columnName}] = @{columnName}, ");
+                    setValueBuilder.Append($"@{columnName}, ");
                     builder._parameters.Add(new SqlParameter($"@{columnName}", property.GetValue(record) ?? DBNull.Value));
                 }
             }
