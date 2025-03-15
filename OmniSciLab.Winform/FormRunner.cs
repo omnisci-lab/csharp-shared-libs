@@ -1,6 +1,7 @@
-﻿using khothemegiatot.License;
+﻿using khothemegiatot.Winform;
+using OmniSciLab.License;
 
-namespace khothemegiatot.Winform;
+namespace OmniSciLab.WinForm;
 
 public static class FormRunner
 {

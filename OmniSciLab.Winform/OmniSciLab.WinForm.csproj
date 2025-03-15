@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\khothemegiatot.License\khothemegiatot.License.csproj" />
+    <ProjectReference Include="..\OmniSciLab.License\OmniSciLab.License.csproj" />
   </ItemGroup>
 
   <ItemGroup>

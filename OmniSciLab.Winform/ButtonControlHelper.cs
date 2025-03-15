@@ -1,9 +1,4 @@
-﻿using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-
-namespace khothemegiatot.Winform;
+﻿namespace OmniSciLab.WinForm;
 
 public static class ButtonControlHelper
 {
